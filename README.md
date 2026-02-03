@@ -1,20 +1,31 @@
 # toml-template
 
-Generate commented TOML templates from Rust structs and values.
+Generate commented TOML configuration template files from Rust structs and values.
 
 ## Features
 
-- Auto-generate TOML configuration templates from Rust values
 - Preserve doc comments as TOML comments
-- Support for common types: HashMap, Vec, Option, primitives, nested structs
+- Support for common types: primitives, Option, HashMap, Vec, nested structs and `serde_json::Value`
+
+## Installation
+
+Add the following dependencies to your `Cargo.toml`:
+
+```toml
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+schemars = "1"
+toml-template = "0.1"
+```
 
 ## Usage
 
 ```rust
-use serde::{Deserialize, Serialize};
+use serde::{Serialize};
+use schemars::JsonSchema;
 use toml_template::TomlTemplate;
 
-#[derive(Deserialize, Serialize, TomlTemplate)]
+#[derive(Serialize, TomlTemplate, JsonSchema)]
 struct Config {
     /// Server host address
     host: String,

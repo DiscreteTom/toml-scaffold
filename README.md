@@ -25,11 +25,11 @@ toml-scaffold = "0.1"
 ## Usage
 
 ```rust
-use serde::{Serialize};
 use schemars::JsonSchema;
+use serde::Serialize;
 use toml_scaffold::TomlScaffold;
 
-#[derive(Serialize, TomlScaffold, JsonSchema)]
+#[derive(Serialize, JsonSchema, TomlScaffold)]
 struct Config {
     /// Server host address
     host: String,

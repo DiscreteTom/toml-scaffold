@@ -1,19 +1,20 @@
-use serde::{Deserialize, Serialize};
+use schemars::JsonSchema;
+use serde::Serialize;
 use toml_scaffold::TomlScaffold;
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
+#[derive(Serialize, JsonSchema, TomlScaffold)]
 struct DeepInner {
     /// Inner value
     value: String,
 }
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
+#[derive(Serialize, JsonSchema, TomlScaffold)]
 struct DeepMiddle {
     /// Inner configuration
     inner: DeepInner,
 }
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
+#[derive(Serialize, JsonSchema, TomlScaffold)]
 struct DeepOuter {
     /// Middle configuration
     middle: DeepMiddle,

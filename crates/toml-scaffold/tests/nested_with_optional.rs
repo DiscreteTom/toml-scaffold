@@ -1,13 +1,14 @@
-use serde::{Deserialize, Serialize};
+use schemars::JsonSchema;
+use serde::Serialize;
 use toml_scaffold::TomlScaffold;
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
+#[derive(Serialize, JsonSchema, TomlScaffold)]
 struct Config {
     /// Worker configuration
     worker: WorkerConfig,
 }
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
+#[derive(Serialize, JsonSchema, TomlScaffold)]
 struct WorkerConfig {
     /// Maximum files per task
     max_files: usize,

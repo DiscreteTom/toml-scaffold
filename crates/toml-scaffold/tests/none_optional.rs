@@ -1,8 +1,9 @@
-use serde::{Deserialize, Serialize};
+use schemars::JsonSchema;
+use serde::Serialize;
 use std::collections::HashMap;
 use toml_scaffold::TomlScaffold;
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
+#[derive(Serialize, JsonSchema, TomlScaffold)]
 struct WithCollections {
     /// List of items
     items: Vec<String>,

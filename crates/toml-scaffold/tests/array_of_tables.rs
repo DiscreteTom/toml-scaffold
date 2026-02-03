@@ -1,13 +1,14 @@
-use serde::{Deserialize, Serialize};
+use schemars::JsonSchema;
+use serde::Serialize;
 use toml_scaffold::TomlScaffold;
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
+#[derive(Serialize, JsonSchema, TomlScaffold)]
 struct Item {
     /// Item name
     name: String,
 }
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
+#[derive(Serialize, JsonSchema, TomlScaffold)]
 struct WithArray {
     /// Array of items
     items: Vec<Item>,

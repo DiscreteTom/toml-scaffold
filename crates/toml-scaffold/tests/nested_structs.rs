@@ -1,7 +1,8 @@
-use serde::{Deserialize, Serialize};
+use schemars::JsonSchema;
+use serde::Serialize;
 use toml_scaffold::TomlScaffold;
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
+#[derive(Serialize, JsonSchema, TomlScaffold)]
 struct Database {
     /// Database URL
     url: String,
@@ -9,7 +10,7 @@ struct Database {
     pool_size: usize,
 }
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
+#[derive(Serialize, JsonSchema, TomlScaffold)]
 struct AppConfig {
     /// Application name
     name: String,

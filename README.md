@@ -51,3 +51,5 @@ host = "localhost"
 # Server port
 port = 8080
 ```
+
+## [CHANGELOG](./CHANGELOG.md)

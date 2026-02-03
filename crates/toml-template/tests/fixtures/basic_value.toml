@@ -1,0 +1,4 @@
+# Server host address
+host = "localhost"
+# Server port
+port = 8080

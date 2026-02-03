@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/toml-template", "crates/toml-template-macros"]
+resolver = "2"

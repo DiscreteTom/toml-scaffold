@@ -1,0 +1,8 @@
+# List of items
+items = ["a", "b"]
+# Optional field
+optional = 42
+
+# Key-value pairs
+[metadata]
+author = "test"

@@ -1,0 +1,7 @@
+# A description field
+description = """
+This is a test
+value = 123
+more text"""
+# Another field
+value = 42

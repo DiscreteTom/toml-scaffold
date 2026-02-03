@@ -1,0 +1,6 @@
+# Middle configuration
+[middle]
+# Inner configuration
+[middle.inner]
+# Inner value
+value = "test"

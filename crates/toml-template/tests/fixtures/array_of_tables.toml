@@ -1,0 +1,9 @@
+# Array of items
+[[items]]
+# Item name
+name = "first"
+
+# Array of items
+[[items]]
+# Item name
+name = "second"

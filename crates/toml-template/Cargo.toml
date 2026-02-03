@@ -13,8 +13,9 @@ categories = ["config", "encoding"]
 [dependencies]
 toml-template-macros = { path = "../toml-template-macros", version = "0.1" }
 toml = "0.9"
-serde = { version = "1", features = ["derive"] }
+serde = "1"
 serde_json = "1"
 schemars = "1"
 
 [dev-dependencies]
+serde = { version = "1", features = ["derive"] }

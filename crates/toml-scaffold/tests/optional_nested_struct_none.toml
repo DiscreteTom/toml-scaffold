@@ -1,0 +1,4 @@
+# Required field
+name = "app"
+# Optional nested struct
+# database = ...

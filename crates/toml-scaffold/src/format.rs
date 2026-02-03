@@ -39,16 +39,24 @@ pub fn format_with_comments(
 
             // Rule 17: Show missing optional fields as comments
             for field in all_fields {
-                if field.starts_with(path) && optional_fields.contains(field) {
-                    let key = if path.is_empty() {
-                        field.as_str()
-                    } else {
-                        field.strip_prefix(&format!("{}.", path)).unwrap_or(field)
-                    };
-                    if !key.contains('.') && !table.contains_key(key) {
-                        append_comment(&mut result, comments, field);
-                        result.push_str(&format!("# {} = ...\n", key));
+                let key = if path.is_empty() {
+                    if field.contains('.') {
+                        continue; // Skip nested fields at root level
                     }
+                    field.as_str()
+                } else {
+                    let prefix = format!("{}.", path);
+                    if let Some(stripped) = field.strip_prefix(&prefix) {
+                        stripped
+                    } else {
+                        continue; // Not a child of current path
+                    }
+                };
+
+                if !key.contains('.') && optional_fields.contains(field) && !table.contains_key(key)
+                {
+                    append_comment(&mut result, comments, field);
+                    result.push_str(&format!("# {} = ...\n", key));
                 }
             }
 

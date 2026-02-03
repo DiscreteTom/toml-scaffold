@@ -1,0 +1,9 @@
+# Required field
+name = "app"
+
+# Optional nested struct
+[database]
+# Database URL
+url = "localhost"
+# Optional port
+# port = ...

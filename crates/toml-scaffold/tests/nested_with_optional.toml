@@ -1,0 +1,6 @@
+# Worker configuration
+[worker]
+# Maximum files per task
+max_files = 5
+# Optional parallel workers
+# max_parallel = ...

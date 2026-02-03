@@ -3,7 +3,7 @@ name = "myapp"
 
 # Database configuration
 [database]
-# Connection pool size
-pool_size = 10
 # Database URL
 url = "postgres://localhost"
+# Connection pool size
+pool_size = 10

@@ -1,17 +1,17 @@
 [package]
-name = "toml-template"
+name = "toml-scaffold"
 version = "0.1.0"
 edition = "2021"
 authors = ["DiscreteTom"]
-description = "Generate commented TOML templates from Rust structs and values"
+description = "Generate commented TOML scaffolds from Rust structs and values"
 license = "MIT"
-repository = "https://github.com/DiscreteTom/toml-template"
+repository = "https://github.com/DiscreteTom/toml-scaffold"
 readme = "../../README.md"
-keywords = ["toml", "template", "config", "serde"]
+keywords = ["toml", "scaffold", "config", "serde"]
 categories = ["config", "encoding"]
 
 [dependencies]
-toml-template-macros = { path = "../toml-template-macros", version = "0.1" }
+toml-scaffold-macros = { path = "../toml-scaffold-macros", version = "0.1" }
 toml = "0.9"
 serde = "1"
 serde_json = "1"

@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
-use toml_template::TomlTemplate;
+use toml_scaffold::TomlScaffold;
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlTemplate)]
+#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
 struct Item {
     /// Item name
     name: String,
 }
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlTemplate)]
+#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
 struct WithArray {
     /// Array of items
     items: Vec<Item>,
@@ -25,6 +25,6 @@ fn test_array_of_tables() {
             },
         ],
     };
-    let template = config.to_template().unwrap();
-    assert_eq!(template, include_str!("array_of_tables.toml"));
+    let scaffold = config.to_scaffold().unwrap();
+    assert_eq!(scaffold, include_str!("array_of_tables.toml"));
 }

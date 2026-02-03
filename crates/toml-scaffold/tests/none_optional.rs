@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use toml_template::TomlTemplate;
+use toml_scaffold::TomlScaffold;
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlTemplate)]
+#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
 struct WithCollections {
     /// List of items
     items: Vec<String>,
@@ -19,6 +19,6 @@ fn test_none_optional() {
         metadata: HashMap::new(),
         optional: None,
     };
-    let template = config.to_template().unwrap();
-    assert_eq!(template, include_str!("none_optional.toml"));
+    let scaffold = config.to_scaffold().unwrap();
+    assert_eq!(scaffold, include_str!("none_optional.toml"));
 }

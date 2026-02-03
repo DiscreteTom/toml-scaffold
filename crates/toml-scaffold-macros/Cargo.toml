@@ -1,11 +1,11 @@
 [package]
-name = "toml-template-macros"
+name = "toml-scaffold-macros"
 version = "0.1.0"
 edition = "2021"
 authors = ["DiscreteTom"]
-description = "Procedural macros for toml-template"
+description = "Procedural macros for toml-scaffold"
 license = "MIT"
-repository = "https://github.com/DiscreteTom/toml-template"
+repository = "https://github.com/DiscreteTom/toml-scaffold"
 
 [lib]
 proc-macro = true

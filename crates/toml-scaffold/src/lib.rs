@@ -5,14 +5,14 @@ mod schema;
 
 use schemars::JsonSchema;
 use serde::Serialize;
-pub use toml_template_macros::TomlTemplate;
+pub use toml_scaffold_macros::TomlScaffold;
 
-/// Trait for generating TOML templates from Rust structs
-pub trait TomlTemplate: Serialize + JsonSchema {
-    /// Generate a template from an actual struct instance
+/// Trait for generating TOML scaffolds from Rust structs
+pub trait TomlScaffold: Serialize + JsonSchema {
+    /// Generate a scaffold from an actual struct instance
     ///
     /// Returns an error if serialization fails
-    fn to_template(&self) -> Result<String, toml::ser::Error> {
+    fn to_scaffold(&self) -> Result<String, toml::ser::Error> {
         let value = toml::Value::try_from(&self)?;
 
         let schema = schemars::schema_for!(Self);

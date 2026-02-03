@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use toml_template::TomlTemplate;
+use toml_scaffold::TomlScaffold;
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlTemplate)]
+#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
 struct MultiLineString {
     /// A description field
     description: String,
@@ -15,6 +15,6 @@ fn test_multiline_string_value() {
         description: "This is a test\nvalue = 123\nmore text".to_string(),
         value: 42,
     };
-    let template = config.to_template().unwrap();
-    assert_eq!(template, include_str!("multiline_string_value.toml"));
+    let scaffold = config.to_scaffold().unwrap();
+    assert_eq!(scaffold, include_str!("multiline_string_value.toml"));
 }

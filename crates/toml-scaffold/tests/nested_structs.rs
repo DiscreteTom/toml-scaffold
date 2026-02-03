@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use toml_template::TomlTemplate;
+use toml_scaffold::TomlScaffold;
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlTemplate)]
+#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
 struct Database {
     /// Database URL
     url: String,
@@ -9,7 +9,7 @@ struct Database {
     pool_size: usize,
 }
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlTemplate)]
+#[derive(Deserialize, Serialize, schemars::JsonSchema, TomlScaffold)]
 struct AppConfig {
     /// Application name
     name: String,
@@ -26,6 +26,6 @@ fn test_nested_structs() {
             pool_size: 10,
         },
     };
-    let template = config.to_template().unwrap();
-    assert_eq!(template, include_str!("nested_structs.toml"));
+    let scaffold = config.to_scaffold().unwrap();
+    assert_eq!(scaffold, include_str!("nested_structs.toml"));
 }

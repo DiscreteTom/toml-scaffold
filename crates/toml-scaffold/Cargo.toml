@@ -12,7 +12,7 @@ categories = ["config", "encoding"]
 
 [dependencies]
 toml-scaffold-macros = { path = "../toml-scaffold-macros", version = "0.1" }
-toml = "0.9"
+toml = { version = "0.9", features = ["preserve_order"] }
 serde = "1"
 serde_json = "1"
 schemars = "1"

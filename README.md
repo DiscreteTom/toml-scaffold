@@ -8,6 +8,7 @@ Generate commented TOML configuration scaffold files from Rust structs and value
 ## Features
 
 - Preserve doc comments as TOML comments
+- Preserve field order in generated TOML
 - Support for common types: primitives, Option, HashMap, Vec, nested structs and `serde_json::Value`
 
 ## Installation

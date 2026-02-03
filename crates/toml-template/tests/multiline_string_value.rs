@@ -16,8 +16,5 @@ fn test_multiline_string_value() {
         value: 42,
     };
     let template = config.to_template().unwrap();
-    assert_eq!(
-        template,
-        include_str!("fixtures/multiline_string_value.toml")
-    );
+    assert_eq!(template, include_str!("multiline_string_value.toml"));
 }

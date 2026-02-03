@@ -26,5 +26,5 @@ fn test_array_of_tables() {
         ],
     };
     let template = config.to_template().unwrap();
-    assert_eq!(template, include_str!("fixtures/array_of_tables.toml"));
+    assert_eq!(template, include_str!("array_of_tables.toml"));
 }

@@ -20,5 +20,5 @@ fn test_none_optional() {
         optional: None,
     };
     let template = config.to_template().unwrap();
-    assert_eq!(template, include_str!("fixtures/none_optional.toml"));
+    assert_eq!(template, include_str!("none_optional.toml"));
 }

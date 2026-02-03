@@ -27,5 +27,5 @@ fn test_nested_structs() {
         },
     };
     let template = config.to_template().unwrap();
-    assert_eq!(template, include_str!("fixtures/nested_structs.toml"));
+    assert_eq!(template, include_str!("nested_structs.toml"));
 }

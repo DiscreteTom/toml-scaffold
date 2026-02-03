@@ -13,7 +13,7 @@ fn test_json_value_field() {
         data: serde_json::json!({"key": "value", "number": 42}),
     };
     let template = config.to_template().unwrap();
-    assert_eq!(template, include_str!("fixtures/json_value_field.toml"));
+    assert_eq!(template, include_str!("json_value_field.toml"));
 }
 
 #[test]
@@ -22,8 +22,5 @@ fn test_json_value_field_empty() {
         data: serde_json::json!({}),
     };
     let template = config.to_template().unwrap();
-    assert_eq!(
-        template,
-        include_str!("fixtures/json_value_field_empty.toml")
-    );
+    assert_eq!(template, include_str!("json_value_field_empty.toml"));
 }

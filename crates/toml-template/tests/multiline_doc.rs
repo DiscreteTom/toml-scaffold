@@ -17,5 +17,5 @@ fn test_multiline_doc() {
         field: "value".to_string(),
     };
     let template = config.to_template().unwrap();
-    assert_eq!(template, include_str!("fixtures/multiline_doc.toml"));
+    assert_eq!(template, include_str!("multiline_doc.toml"));
 }

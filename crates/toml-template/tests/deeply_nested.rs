@@ -29,5 +29,5 @@ fn test_deeply_nested() {
         },
     };
     let template = config.to_template().unwrap();
-    assert_eq!(template, include_str!("fixtures/deeply_nested.toml"));
+    assert_eq!(template, include_str!("deeply_nested.toml"));
 }

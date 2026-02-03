@@ -16,5 +16,5 @@ fn test_basic_value_template() {
         port: 8080,
     };
     let template = config.to_template().unwrap();
-    assert_eq!(template, include_str!("fixtures/basic_value.toml"));
+    assert_eq!(template, include_str!("basic_value.toml"));
 }

@@ -22,6 +22,6 @@ fn test_collections() {
         metadata,
         optional: Some(42),
     };
-    let template = config.to_template();
+    let template = config.to_template().unwrap();
     assert_eq!(template, include_str!("fixtures/collections.toml"));
 }

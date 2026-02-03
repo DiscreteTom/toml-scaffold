@@ -8,19 +8,20 @@ pub use toml_template_macros::TomlTemplate;
 /// Trait for generating TOML templates from Rust structs
 pub trait TomlTemplate: Serialize + JsonSchema {
     /// Generate a template from an actual struct instance
-    fn to_template(&self) -> String {
+    ///
+    /// Returns an error if serialization fails
+    fn to_template(&self) -> Result<String, toml::ser::Error> {
         let schema = schemars::schema_for!(Self);
-        let toml_str = toml::to_string(self).unwrap();
-        let toml_value: toml::Value = toml::from_str(&toml_str).unwrap();
+        let value = toml::Value::try_from(&self)?;
         let schema_info = schema::extract_all_comments(&schema, "");
         let result = format::format_with_comments(
-            &toml_value,
+            &value,
             &schema_info.comments,
             &schema_info.all_fields,
             &schema_info.optional_fields,
             "",
         );
         // Rule 14: Always end file with a single newline
-        format!("{}\n", result.trim_end())
+        Ok(format!("{}\n", result.trim_end()))
     }
 }

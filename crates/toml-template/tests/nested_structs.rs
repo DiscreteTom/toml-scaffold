@@ -26,6 +26,6 @@ fn test_nested_structs() {
             pool_size: 10,
         },
     };
-    let template = config.to_template();
+    let template = config.to_template().unwrap();
     assert_eq!(template, include_str!("fixtures/nested_structs.toml"));
 }

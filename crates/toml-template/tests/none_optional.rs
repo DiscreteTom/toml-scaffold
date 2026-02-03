@@ -19,6 +19,6 @@ fn test_none_optional() {
         metadata: HashMap::new(),
         optional: None,
     };
-    let template = config.to_template();
+    let template = config.to_template().unwrap();
     assert_eq!(template, include_str!("fixtures/none_optional.toml"));
 }

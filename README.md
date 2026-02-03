@@ -27,7 +27,7 @@ fn main() {
         host: "localhost".to_string(),
         port: 8080,
     };
-    let template = config.to_template();
+    let template = config.to_template().unwrap();
     println!("{}", template);
 }
 ```

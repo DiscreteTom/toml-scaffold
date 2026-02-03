@@ -55,4 +55,6 @@ host = "localhost"
 port = 8080
 ```
 
+## [More Examples](./crates/toml-template/tests/)
+
 ## [CHANGELOG](./CHANGELOG.md)

@@ -1,0 +1,4 @@
+# Raw JSON value
+[data]
+key = "value"
+number = 42

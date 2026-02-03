@@ -12,7 +12,7 @@ struct MultiLineString {
 #[test]
 fn test_multiline_string_value() {
     let config = MultiLineString {
-        description: "This is a test\nvalue = 123\nmore text".to_string(),
+        description: "\nThis is a test\nvalue = 123\nmore text\n".to_string(),
         value: 42,
     };
     let scaffold = config.to_scaffold().unwrap();

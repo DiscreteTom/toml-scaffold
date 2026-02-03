@@ -141,7 +141,7 @@ fn format_value(value: &toml::Value, comments: &HashMap<String, String>) -> Stri
         toml::Value::String(s) => {
             // Rule 20: Use multiline strings for strings containing newlines
             if s.contains('\n') {
-                format!("\"\"\"\n{}\"\"\"", s)
+                format!("\"\"\"{}\"\"\"", s)
             } else {
                 // Rule 19: Properly escape strings
                 let escaped = s

@@ -12,10 +12,12 @@ pub struct SchemaInfo {
 }
 
 /// Extract comments and field information from schema root
-pub fn extract_all_comments(schema: &RootSchema, prefix: &str) -> SchemaInfo {
-    let mut comments = HashMap::new();
-    let mut all_fields = HashSet::new();
-    let mut optional_fields = HashSet::new();
+pub fn extract_schema_info(schema: &RootSchema, prefix: &str) -> SchemaInfo {
+    let mut info = SchemaInfo {
+        comments: HashMap::new(),
+        all_fields: HashSet::new(),
+        optional_fields: HashSet::new(),
+    };
 
     if let Some(obj) = schema.schema.object.as_ref() {
         for (key, sub_schema) in &obj.properties {
@@ -25,44 +27,31 @@ pub fn extract_all_comments(schema: &RootSchema, prefix: &str) -> SchemaInfo {
                 format!("{}.{}", prefix, key)
             };
 
-            all_fields.insert(path.clone());
+            info.all_fields.insert(path.clone());
 
             // Check if field is optional
             if !obj.required.contains(key) {
-                optional_fields.insert(path.clone());
+                info.optional_fields.insert(path.clone());
             }
 
             if let Some(metadata) = sub_schema.clone().into_object().metadata {
                 if let Some(desc) = metadata.description {
-                    comments.insert(path.clone(), desc);
+                    info.comments.insert(path.clone(), desc);
                 }
             }
 
-            extract_nested_comments(
-                sub_schema,
-                &path,
-                &mut comments,
-                &mut all_fields,
-                &mut optional_fields,
-                &schema.definitions,
-            );
+            extract_nested_schema_info(sub_schema, &path, &mut info, &schema.definitions);
         }
     }
 
-    SchemaInfo {
-        comments,
-        all_fields,
-        optional_fields,
-    }
+    info
 }
 
 /// Recursively extract comments from nested schema properties
-fn extract_nested_comments(
+fn extract_nested_schema_info(
     schema: &Schema,
     prefix: &str,
-    comments: &mut HashMap<String, String>,
-    all_fields: &mut HashSet<String>,
-    optional_fields: &mut HashSet<String>,
+    info: &mut SchemaInfo,
     definitions: &std::collections::BTreeMap<String, Schema>,
 ) {
     let schema_obj = schema.clone().into_object();
@@ -73,14 +62,7 @@ fn extract_nested_comments(
             .strip_prefix("#/definitions/")
             .unwrap_or(reference);
         if let Some(ref_schema) = definitions.get(ref_name) {
-            extract_nested_comments(
-                ref_schema,
-                prefix,
-                comments,
-                all_fields,
-                optional_fields,
-                definitions,
-            );
+            extract_nested_schema_info(ref_schema, prefix, info, definitions);
         }
     }
 
@@ -88,38 +70,17 @@ fn extract_nested_comments(
     if let Some(subschemas) = &schema_obj.subschemas {
         if let Some(all_of) = &subschemas.all_of {
             for sub_schema in all_of {
-                extract_nested_comments(
-                    sub_schema,
-                    prefix,
-                    comments,
-                    all_fields,
-                    optional_fields,
-                    definitions,
-                );
+                extract_nested_schema_info(sub_schema, prefix, info, definitions);
             }
         }
         if let Some(any_of) = &subschemas.any_of {
             for sub_schema in any_of {
-                extract_nested_comments(
-                    sub_schema,
-                    prefix,
-                    comments,
-                    all_fields,
-                    optional_fields,
-                    definitions,
-                );
+                extract_nested_schema_info(sub_schema, prefix, info, definitions);
             }
         }
         if let Some(one_of) = &subschemas.one_of {
             for sub_schema in one_of {
-                extract_nested_comments(
-                    sub_schema,
-                    prefix,
-                    comments,
-                    all_fields,
-                    optional_fields,
-                    definitions,
-                );
+                extract_nested_schema_info(sub_schema, prefix, info, definitions);
             }
         }
     }
@@ -129,26 +90,19 @@ fn extract_nested_comments(
         for (key, sub_schema) in &obj.properties {
             let path = format!("{}.{}", prefix, key);
 
-            all_fields.insert(path.clone());
+            info.all_fields.insert(path.clone());
 
             if !obj.required.contains(key) {
-                optional_fields.insert(path.clone());
+                info.optional_fields.insert(path.clone());
             }
 
             if let Some(metadata) = sub_schema.clone().into_object().metadata {
                 if let Some(desc) = metadata.description {
-                    comments.insert(path.clone(), desc);
+                    info.comments.insert(path.clone(), desc);
                 }
             }
 
-            extract_nested_comments(
-                sub_schema,
-                &path,
-                comments,
-                all_fields,
-                optional_fields,
-                definitions,
-            );
+            extract_nested_schema_info(sub_schema, &path, info, definitions);
         }
     }
 
@@ -156,14 +110,7 @@ fn extract_nested_comments(
     if let Some(array) = &schema_obj.array {
         if let Some(items) = &array.items {
             if let schemars::schema::SingleOrVec::Single(item_schema) = items {
-                extract_nested_comments(
-                    item_schema,
-                    prefix,
-                    comments,
-                    all_fields,
-                    optional_fields,
-                    definitions,
-                );
+                extract_nested_schema_info(item_schema, prefix, info, definitions);
             }
         }
     }

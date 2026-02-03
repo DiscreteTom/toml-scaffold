@@ -11,9 +11,11 @@ pub trait TomlTemplate: Serialize + JsonSchema {
     ///
     /// Returns an error if serialization fails
     fn to_template(&self) -> Result<String, toml::ser::Error> {
-        let schema = schemars::schema_for!(Self);
         let value = toml::Value::try_from(&self)?;
-        let schema_info = schema::extract_all_comments(&schema, "");
+
+        let schema = schemars::schema_for!(Self);
+        let schema_info = schema::extract_schema_info(&schema, "");
+
         let result = format::format_with_comments(
             &value,
             &schema_info.comments,

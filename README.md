@@ -1,5 +1,8 @@
 # toml-template
 
+[![Crates.io](https://img.shields.io/crates/v/toml-template)](https://crates.io/crates/toml-template)
+[![License](https://img.shields.io/github/license/DiscreteTom/toml-template)](https://github.com/DiscreteTom/toml-template/blob/main/LICENSE)
+
 Generate commented TOML configuration template files from Rust structs and values.
 
 ## Features

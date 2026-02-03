@@ -1,9 +1,11 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 /// Format TOML value with comments at the appropriate paths
 pub fn format_with_comments(
     value: &toml::Value,
     comments: &HashMap<String, String>,
+    all_fields: &HashSet<String>,
+    optional_fields: &HashSet<String>,
     path: &str,
 ) -> String {
     match value {
@@ -35,6 +37,21 @@ pub fn format_with_comments(
                 result.push_str(&format!("{} = {}\n", key, format_value(val, comments)));
             }
 
+            // Rule 17: Show missing optional fields as comments
+            for field in all_fields {
+                if field.starts_with(path) && optional_fields.contains(field) {
+                    let key = if path.is_empty() {
+                        field.as_str()
+                    } else {
+                        field.strip_prefix(&format!("{}.", path)).unwrap_or(field)
+                    };
+                    if !key.contains('.') && !table.contains_key(key) {
+                        append_comment(&mut result, comments, field);
+                        result.push_str(&format!("# {} = ...\n", key));
+                    }
+                }
+            }
+
             // Process nested tables
             for key in nested_tables {
                 let val = &table[key];
@@ -43,7 +60,13 @@ pub fn format_with_comments(
                 append_comment(&mut result, comments, &current_path);
                 // Rule 3: Always use [section] headers, never dotted keys
                 result.push_str(&format!("[{}]\n", current_path));
-                result.push_str(&format_with_comments(val, comments, &current_path));
+                result.push_str(&format_with_comments(
+                    val,
+                    comments,
+                    all_fields,
+                    optional_fields,
+                    &current_path,
+                ));
             }
 
             // Rule 5: Process array of tables using [[item]] syntax
@@ -56,7 +79,13 @@ pub fn format_with_comments(
                         append_section_separator(&mut result);
                         append_comment(&mut result, comments, &current_path);
                         result.push_str(&format!("[[{}]]\n", current_path));
-                        result.push_str(&format_with_comments(item, comments, &current_path));
+                        result.push_str(&format_with_comments(
+                            item,
+                            comments,
+                            all_fields,
+                            optional_fields,
+                            &current_path,
+                        ));
                     }
                 }
             }

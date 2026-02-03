@@ -12,8 +12,14 @@ pub trait TomlTemplate: Serialize + JsonSchema {
         let schema = schemars::schema_for!(Self);
         let toml_str = toml::to_string(self).unwrap();
         let toml_value: toml::Value = toml::from_str(&toml_str).unwrap();
-        let comments = schema::extract_all_comments(&schema, "");
-        let result = format::format_with_comments(&toml_value, &comments, "");
+        let schema_info = schema::extract_all_comments(&schema, "");
+        let result = format::format_with_comments(
+            &toml_value,
+            &schema_info.comments,
+            &schema_info.all_fields,
+            &schema_info.optional_fields,
+            "",
+        );
         // Rule 14: Always end file with a single newline
         format!("{}\n", result.trim_end())
     }

@@ -1,4 +1,5 @@
-use schemars::{schema::RootSchema, schema::Schema};
+use schemars::Schema;
+use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 
 /// Schema information extracted from a JSON schema
@@ -12,36 +13,55 @@ pub struct SchemaInfo {
 }
 
 /// Extract comments and field information from schema root
-pub fn extract_schema_info(schema: &RootSchema, prefix: &str) -> SchemaInfo {
+pub fn extract_schema_info(schema: &Schema, prefix: &str) -> SchemaInfo {
     let mut info = SchemaInfo {
         comments: HashMap::new(),
         all_fields: HashSet::new(),
         optional_fields: HashSet::new(),
     };
 
-    if let Some(obj) = schema.schema.object.as_ref() {
-        for (key, sub_schema) in &obj.properties {
-            let path = if prefix.is_empty() {
-                key.clone()
-            } else {
-                format!("{}.{}", prefix, key)
-            };
+    let Some(obj) = schema.as_object() else {
+        return info;
+    };
 
-            info.all_fields.insert(path.clone());
+    let Some(properties) = obj.get("properties").and_then(|v| v.as_object()) else {
+        return info;
+    };
 
-            // Check if field is optional
-            if !obj.required.contains(key) {
-                info.optional_fields.insert(path.clone());
-            }
+    let required = obj
+        .get("required")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str())
+                .collect::<HashSet<_>>()
+        })
+        .unwrap_or_default();
 
-            if let Some(metadata) = sub_schema.clone().into_object().metadata {
-                if let Some(desc) = metadata.description {
-                    info.comments.insert(path.clone(), desc);
-                }
-            }
+    let definitions = obj
+        .get("$defs")
+        .and_then(|v| v.as_object())
+        .cloned()
+        .unwrap_or_default();
 
-            extract_nested_schema_info(sub_schema, &path, &mut info, &schema.definitions);
+    for (key, sub_schema) in properties {
+        let path = if prefix.is_empty() {
+            key.clone()
+        } else {
+            format!("{}.{}", prefix, key)
+        };
+
+        info.all_fields.insert(path.clone());
+
+        if !required.contains(key.as_str()) {
+            info.optional_fields.insert(path.clone());
         }
+
+        if let Some(desc) = sub_schema.get("description").and_then(|v| v.as_str()) {
+            info.comments.insert(path.clone(), desc.to_string());
+        }
+
+        extract_nested_schema_info(sub_schema, &path, &mut info, &definitions);
     }
 
     info
@@ -49,57 +69,55 @@ pub fn extract_schema_info(schema: &RootSchema, prefix: &str) -> SchemaInfo {
 
 /// Recursively extract comments from nested schema properties
 fn extract_nested_schema_info(
-    schema: &Schema,
+    schema: &Value,
     prefix: &str,
     info: &mut SchemaInfo,
-    definitions: &std::collections::BTreeMap<String, Schema>,
+    definitions: &serde_json::Map<String, Value>,
 ) {
-    let schema_obj = schema.clone().into_object();
+    let Some(obj) = schema.as_object() else {
+        return;
+    };
 
     // Handle references
-    if let Some(reference) = &schema_obj.reference {
-        let ref_name = reference
-            .strip_prefix("#/definitions/")
-            .unwrap_or(reference);
+    if let Some(reference) = obj.get("$ref").and_then(|v| v.as_str()) {
+        let ref_name = reference.strip_prefix("#/$defs/").unwrap_or(reference);
         if let Some(ref_schema) = definitions.get(ref_name) {
             extract_nested_schema_info(ref_schema, prefix, info, definitions);
         }
     }
 
     // Handle subschemas (allOf, anyOf, oneOf)
-    if let Some(subschemas) = &schema_obj.subschemas {
-        if let Some(all_of) = &subschemas.all_of {
-            for sub_schema in all_of {
-                extract_nested_schema_info(sub_schema, prefix, info, definitions);
-            }
-        }
-        if let Some(any_of) = &subschemas.any_of {
-            for sub_schema in any_of {
-                extract_nested_schema_info(sub_schema, prefix, info, definitions);
-            }
-        }
-        if let Some(one_of) = &subschemas.one_of {
-            for sub_schema in one_of {
+    for key in ["allOf", "anyOf", "oneOf"] {
+        if let Some(subschemas) = obj.get(key).and_then(|v| v.as_array()) {
+            for sub_schema in subschemas {
                 extract_nested_schema_info(sub_schema, prefix, info, definitions);
             }
         }
     }
 
     // Handle object properties
-    if let Some(obj) = &schema_obj.object {
-        for (key, sub_schema) in &obj.properties {
+    if let Some(properties) = obj.get("properties").and_then(|v| v.as_object()) {
+        let required = obj
+            .get("required")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str())
+                    .collect::<HashSet<_>>()
+            })
+            .unwrap_or_default();
+
+        for (key, sub_schema) in properties {
             let path = format!("{}.{}", prefix, key);
 
             info.all_fields.insert(path.clone());
 
-            if !obj.required.contains(key) {
+            if !required.contains(key.as_str()) {
                 info.optional_fields.insert(path.clone());
             }
 
-            if let Some(metadata) = sub_schema.clone().into_object().metadata {
-                if let Some(desc) = metadata.description {
-                    info.comments.insert(path.clone(), desc);
-                }
+            if let Some(desc) = sub_schema.get("description").and_then(|v| v.as_str()) {
+                info.comments.insert(path.clone(), desc.to_string());
             }
 
             extract_nested_schema_info(sub_schema, &path, info, definitions);
@@ -107,11 +125,7 @@ fn extract_nested_schema_info(
     }
 
     // Handle array items
-    if let Some(array) = &schema_obj.array {
-        if let Some(items) = &array.items {
-            if let schemars::schema::SingleOrVec::Single(item_schema) = items {
-                extract_nested_schema_info(item_schema, prefix, info, definitions);
-            }
-        }
+    if let Some(items) = obj.get("items") {
+        extract_nested_schema_info(items, prefix, info, definitions);
     }
 }

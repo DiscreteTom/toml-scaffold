@@ -1,12 +1,13 @@
+use crate::field_path::FieldPath;
 use std::collections::{HashMap, HashSet};
 
 /// Format TOML value with comments at the appropriate paths
 pub fn format_with_comments(
     value: &toml::Value,
-    comments: &HashMap<String, String>,
-    all_fields: &HashSet<String>,
-    optional_fields: &HashSet<String>,
-    path: &str,
+    comments: &HashMap<FieldPath, String>,
+    all_fields: &HashSet<FieldPath>,
+    optional_fields: &HashSet<FieldPath>,
+    path: &FieldPath,
 ) -> String {
     match value {
         toml::Value::Table(table) => {
@@ -31,7 +32,7 @@ pub fn format_with_comments(
             // Process scalar fields first
             for key in inline_keys {
                 let val = &table[key];
-                let current_path = build_path(path, key);
+                let current_path = path.child(key.clone());
                 append_comment(&mut result, comments, &current_path);
                 // Rule 11: Use spaces around = for assignments
                 result.push_str(&format!("{} = {}\n", key, format_value(val, comments)));
@@ -39,22 +40,15 @@ pub fn format_with_comments(
 
             // Rule 17: Show missing optional fields as comments
             for field in all_fields {
-                let key = if path.is_empty() {
-                    if field.contains('.') {
-                        continue; // Skip nested fields at root level
-                    }
-                    field.as_str()
-                } else {
-                    let prefix = format!("{}.", path);
-                    if let Some(stripped) = field.strip_prefix(&prefix) {
-                        stripped
-                    } else {
-                        continue; // Not a child of current path
-                    }
-                };
+                if field.len() != path.len() + 1 {
+                    continue; // Not a direct child
+                }
+                if !field.starts_with(path) {
+                    continue; // Not under current path
+                }
+                let key = field.get(path.len()).unwrap();
 
-                if !key.contains('.') && optional_fields.contains(field) && !table.contains_key(key)
-                {
+                if optional_fields.contains(field) && !table.contains_key(key) {
                     append_comment(&mut result, comments, field);
                     result.push_str(&format!("# {} = ...\n", key));
                 }
@@ -63,11 +57,11 @@ pub fn format_with_comments(
             // Process nested tables
             for key in nested_tables {
                 let val = &table[key];
-                let current_path = build_path(path, key);
+                let current_path = path.child(key.clone());
                 append_section_separator(&mut result);
                 append_comment(&mut result, comments, &current_path);
                 // Rule 3: Always use [section] headers, never dotted keys
-                result.push_str(&format!("[{}]\n", current_path));
+                result.push_str(&format!("[{}]\n", current_path.as_dotted_key()));
                 result.push_str(&format_with_comments(
                     val,
                     comments,
@@ -80,13 +74,13 @@ pub fn format_with_comments(
             // Rule 5: Process array of tables using [[item]] syntax
             for key in array_tables {
                 let val = &table[key];
-                let current_path = build_path(path, key);
+                let current_path = path.child(key.clone());
 
                 if let toml::Value::Array(arr) = val {
                     for item in arr {
                         append_section_separator(&mut result);
                         append_comment(&mut result, comments, &current_path);
-                        result.push_str(&format!("[[{}]]\n", current_path));
+                        result.push_str(&format!("[[{}]]\n", current_path.as_dotted_key()));
                         result.push_str(&format_with_comments(
                             item,
                             comments,
@@ -104,17 +98,8 @@ pub fn format_with_comments(
     }
 }
 
-/// Build a path by appending a key to the current path
-fn build_path(path: &str, key: &str) -> String {
-    if path.is_empty() {
-        key.to_string()
-    } else {
-        format!("{}.{}", path, key)
-    }
-}
-
 /// Rule 7 & 9: Append comment lines above a key/section
-fn append_comment(result: &mut String, comments: &HashMap<String, String>, path: &str) {
+fn append_comment(result: &mut String, comments: &HashMap<FieldPath, String>, path: &FieldPath) {
     if let Some(comment) = comments.get(path) {
         // Collapse multiple consecutive newlines into single newlines
         let normalized = comment.replace("\n\n", "\n");
@@ -136,7 +121,7 @@ fn append_section_separator(result: &mut String) {
 }
 
 /// Convert TOML value to string representation
-fn format_value(value: &toml::Value, comments: &HashMap<String, String>) -> String {
+fn format_value(value: &toml::Value, comments: &HashMap<FieldPath, String>) -> String {
     match value {
         toml::Value::String(s) => {
             // Rule 20: Use multiline strings for strings containing newlines
@@ -203,7 +188,9 @@ fn is_scalar(value: &toml::Value) -> bool {
 /// Check if any keys in the table have associated comments
 fn has_comments(
     table: &toml::map::Map<String, toml::Value>,
-    comments: &HashMap<String, String>,
+    comments: &HashMap<FieldPath, String>,
 ) -> bool {
-    table.keys().any(|k| comments.contains_key(k))
+    table
+        .keys()
+        .any(|k| comments.contains_key(&FieldPath::from_vec(vec![k.clone()])))
 }

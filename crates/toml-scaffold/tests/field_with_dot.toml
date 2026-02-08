@@ -1,0 +1,4 @@
+# Field with a dot in its name
+field.with.dots = "value"
+# Regular field
+regular = "normal"

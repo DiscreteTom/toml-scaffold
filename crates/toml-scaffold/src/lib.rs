@@ -1,24 +1,24 @@
 #![doc = include_str!("../../../README.md")]
 
+mod field_path;
 mod format;
 mod schema;
 
+use field_path::FieldPath;
 use schemars::JsonSchema;
 use serde::Serialize;
 pub use toml_scaffold_macros::TomlScaffold;
 
-/// Trait for generating TOML scaffolds from Rust structs
+/// Trait for generating TOML scaffold files with comments from doc strings.
 pub trait TomlScaffold: Serialize + JsonSchema {
-    /// Generate a scaffold from an actual struct instance
-    ///
-    /// Returns an error if serialization fails
+    /// Generates a TOML scaffold string with comments from struct field doc comments.
     fn to_scaffold(&self) -> Result<String, toml::ser::Error> {
         // Serialize struct to TOML value
         let value = toml::Value::try_from(&self)?;
 
         // Extract schema metadata (comments, field info)
         let schema = schemars::schema_for!(Self);
-        let schema_info = schema::extract_schema_info(&schema, "");
+        let schema_info = schema::extract_schema_info(&schema, &FieldPath::new());
 
         // Format TOML with comments from schema
         let result = format::format_with_comments(
@@ -26,7 +26,7 @@ pub trait TomlScaffold: Serialize + JsonSchema {
             &schema_info.comments,
             &schema_info.all_fields,
             &schema_info.optional_fields,
-            "",
+            &FieldPath::new(),
         );
 
         // Rule 14: Always end file with a single newline

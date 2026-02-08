@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Handle field names containing dots correctly
 - Properly escape TOML keys with special characters (dots, spaces, etc.) using `toml_writer` crate
+- Use `toml_writer` for proper string escaping and formatting
 
 ## [0.1.0] - 2026-02-03
 

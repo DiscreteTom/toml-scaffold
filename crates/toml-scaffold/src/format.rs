@@ -136,18 +136,9 @@ fn append_section_separator(result: &mut String) {
 fn format_value(value: &toml::Value, comments: &HashMap<FieldPath, String>) -> String {
     match value {
         toml::Value::String(s) => {
-            // Rule 20: Use multiline strings for strings containing newlines
-            if s.contains('\n') {
-                format!("\"\"\"{}\"\"\"", s)
-            } else {
-                // Rule 19: Properly escape strings
-                let escaped = s
-                    .replace('\\', "\\\\")
-                    .replace('\r', "\\r")
-                    .replace('\t', "\\t")
-                    .replace('"', "\\\"");
-                format!("\"{}\"", escaped)
-            }
+            let mut result = String::new();
+            let _ = result.value(s);
+            result
         }
         toml::Value::Integer(i) => i.to_string(),
         toml::Value::Float(f) => f.to_string(),
@@ -222,14 +213,16 @@ mod tests {
     fn test_format_value_string_with_escapes() {
         let comments = HashMap::new();
         let val = toml::Value::String("test\"quote".to_string());
-        assert_eq!(format_value(&val, &comments), "\"test\\\"quote\"");
+        // TomlStringBuilder uses literal strings for strings with quotes
+        assert_eq!(format_value(&val, &comments), "'test\"quote'");
     }
 
     #[test]
     fn test_format_value_multiline_string() {
         let comments = HashMap::new();
         let val = toml::Value::String("line1\nline2".to_string());
-        assert_eq!(format_value(&val, &comments), "\"\"\"line1\nline2\"\"\"");
+        // TomlStringBuilder adds newline after opening """ for multiline strings
+        assert_eq!(format_value(&val, &comments), "\"\"\"\nline1\nline2\"\"\"");
     }
 
     #[test]

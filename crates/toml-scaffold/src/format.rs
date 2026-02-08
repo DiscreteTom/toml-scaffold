@@ -194,3 +194,135 @@ fn has_comments(
         .keys()
         .any(|k| comments.contains_key(&FieldPath::from_vec(vec![k.clone()])))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_value_string() {
+        let comments = HashMap::new();
+        let val = toml::Value::String("test".to_string());
+        assert_eq!(format_value(&val, &comments), "\"test\"");
+    }
+
+    #[test]
+    fn test_format_value_string_with_escapes() {
+        let comments = HashMap::new();
+        let val = toml::Value::String("test\"quote".to_string());
+        assert_eq!(format_value(&val, &comments), "\"test\\\"quote\"");
+    }
+
+    #[test]
+    fn test_format_value_multiline_string() {
+        let comments = HashMap::new();
+        let val = toml::Value::String("line1\nline2".to_string());
+        assert_eq!(format_value(&val, &comments), "\"\"\"line1\nline2\"\"\"");
+    }
+
+    #[test]
+    fn test_format_value_integer() {
+        let comments = HashMap::new();
+        let val = toml::Value::Integer(42);
+        assert_eq!(format_value(&val, &comments), "42");
+    }
+
+    #[test]
+    fn test_format_value_float() {
+        let comments = HashMap::new();
+        let val = toml::Value::Float(3.14);
+        assert_eq!(format_value(&val, &comments), "3.14");
+    }
+
+    #[test]
+    fn test_format_value_boolean() {
+        let comments = HashMap::new();
+        let val = toml::Value::Boolean(true);
+        assert_eq!(format_value(&val, &comments), "true");
+    }
+
+    #[test]
+    fn test_format_value_inline_array() {
+        let comments = HashMap::new();
+        let val = toml::Value::Array(vec![
+            toml::Value::Integer(1),
+            toml::Value::Integer(2),
+            toml::Value::Integer(3),
+        ]);
+        assert_eq!(format_value(&val, &comments), "[1, 2, 3]");
+    }
+
+    #[test]
+    fn test_format_value_multiline_array() {
+        let comments = HashMap::new();
+        let val = toml::Value::Array(vec![
+            toml::Value::Integer(1),
+            toml::Value::Integer(2),
+            toml::Value::Integer(3),
+            toml::Value::Integer(4),
+            toml::Value::Integer(5),
+        ]);
+        assert_eq!(
+            format_value(&val, &comments),
+            "[\n  1,\n  2,\n  3,\n  4,\n  5,\n]"
+        );
+    }
+
+    #[test]
+    fn test_is_scalar() {
+        assert!(is_scalar(&toml::Value::Integer(1)));
+        assert!(is_scalar(&toml::Value::String("test".to_string())));
+        assert!(is_scalar(&toml::Value::Boolean(true)));
+        assert!(!is_scalar(&toml::Value::Array(vec![])));
+        assert!(!is_scalar(&toml::Value::Table(toml::map::Map::new())));
+    }
+
+    #[test]
+    fn test_append_comment() {
+        let mut result = String::new();
+        let mut comments = HashMap::new();
+        let path = FieldPath::from_vec(vec!["field".to_string()]);
+        comments.insert(path.clone(), "Test comment".to_string());
+
+        append_comment(&mut result, &comments, &path);
+        assert_eq!(result, "# Test comment\n");
+    }
+
+    #[test]
+    fn test_append_comment_multiline() {
+        let mut result = String::new();
+        let mut comments = HashMap::new();
+        let path = FieldPath::from_vec(vec!["field".to_string()]);
+        comments.insert(path.clone(), "Line 1\nLine 2".to_string());
+
+        append_comment(&mut result, &comments, &path);
+        assert_eq!(result, "# Line 1\n# Line 2\n");
+    }
+
+    #[test]
+    fn test_append_section_separator() {
+        let mut result = String::new();
+        append_section_separator(&mut result);
+        assert_eq!(result, "");
+
+        result.push_str("content");
+        append_section_separator(&mut result);
+        assert_eq!(result, "content\n");
+    }
+
+    #[test]
+    fn test_has_comments() {
+        let mut table = toml::map::Map::new();
+        table.insert("key".to_string(), toml::Value::Integer(1));
+
+        let comments = HashMap::new();
+        assert!(!has_comments(&table, &comments));
+
+        let mut comments = HashMap::new();
+        comments.insert(
+            FieldPath::from_vec(vec!["key".to_string()]),
+            "comment".to_string(),
+        );
+        assert!(has_comments(&table, &comments));
+    }
+}

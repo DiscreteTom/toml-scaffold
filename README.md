@@ -20,7 +20,7 @@ Add the following dependencies to your `Cargo.toml`:
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 schemars = "1"
-toml-scaffold = "0.1"
+toml-scaffold = "0.2"
 ```
 
 ## Usage

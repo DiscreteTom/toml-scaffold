@@ -2,6 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/toml-scaffold)](https://crates.io/crates/toml-scaffold)
 [![License](https://img.shields.io/github/license/DiscreteTom/toml-scaffold)](https://github.com/DiscreteTom/toml-scaffold/blob/main/LICENSE)
+[![codecov](https://codecov.io/gh/DiscreteTom/toml-scaffold/branch/main/graph/badge.svg)](https://codecov.io/gh/DiscreteTom/toml-scaffold)
 
 Generate commented TOML configuration scaffold files from Rust structs and values.
 

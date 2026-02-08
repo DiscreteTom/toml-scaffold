@@ -109,3 +109,97 @@ fn process_properties(
         extract_nested_schema_info(sub_schema, &path, info, definitions);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use schemars::JsonSchema;
+    use serde::Serialize;
+
+    #[derive(Serialize, JsonSchema)]
+    struct Simple {
+        /// Required field
+        required: String,
+        /// Optional field
+        optional: Option<String>,
+    }
+
+    #[test]
+    fn test_extract_required_and_optional() {
+        let schema = schemars::schema_for!(Simple);
+        let info = extract_schema_info(&schema, &FieldPath::new());
+
+        assert_eq!(info.all_fields.len(), 2);
+        assert!(info
+            .all_fields
+            .contains(&FieldPath::from_vec(vec!["required".to_string()])));
+        assert!(info
+            .all_fields
+            .contains(&FieldPath::from_vec(vec!["optional".to_string()])));
+        assert_eq!(info.optional_fields.len(), 1);
+        assert!(info
+            .optional_fields
+            .contains(&FieldPath::from_vec(vec!["optional".to_string()])));
+    }
+
+    #[test]
+    fn test_extract_comments() {
+        let schema = schemars::schema_for!(Simple);
+        let info = extract_schema_info(&schema, &FieldPath::new());
+
+        assert_eq!(info.comments.len(), 2);
+        assert_eq!(
+            info.comments
+                .get(&FieldPath::from_vec(vec!["required".to_string()])),
+            Some(&"Required field".to_string())
+        );
+        assert_eq!(
+            info.comments
+                .get(&FieldPath::from_vec(vec!["optional".to_string()])),
+            Some(&"Optional field".to_string())
+        );
+    }
+
+    #[derive(Serialize, JsonSchema)]
+    struct Nested {
+        /// Inner field
+        inner: Inner,
+    }
+
+    #[derive(Serialize, JsonSchema)]
+    struct Inner {
+        /// Value
+        value: String,
+    }
+
+    #[test]
+    fn test_extract_nested() {
+        let schema = schemars::schema_for!(Nested);
+        let info = extract_schema_info(&schema, &FieldPath::new());
+
+        assert!(info
+            .all_fields
+            .contains(&FieldPath::from_vec(vec!["inner".to_string()])));
+        assert!(info.all_fields.contains(&FieldPath::from_vec(vec![
+            "inner".to_string(),
+            "value".to_string()
+        ])));
+        assert_eq!(
+            info.comments.get(&FieldPath::from_vec(vec![
+                "inner".to_string(),
+                "value".to_string()
+            ])),
+            Some(&"Value".to_string())
+        );
+    }
+
+    #[test]
+    fn test_empty_schema() {
+        let schema = serde_json::from_value(serde_json::json!({})).unwrap();
+        let info = extract_schema_info(&schema, &FieldPath::new());
+
+        assert_eq!(info.all_fields.len(), 0);
+        assert_eq!(info.optional_fields.len(), 0);
+        assert_eq!(info.comments.len(), 0);
+    }
+}

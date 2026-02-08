@@ -1,5 +1,6 @@
 use crate::field_path::FieldPath;
 use std::collections::{HashMap, HashSet};
+use toml_writer::TomlWrite;
 
 /// Format TOML value with comments at the appropriate paths
 pub fn format_with_comments(
@@ -20,7 +21,8 @@ pub fn format_with_comments(
                 let current_path = path.child(key.clone());
                 append_comment(&mut result, comments, &current_path);
                 // Rule 11: Use spaces around = for assignments
-                result.push_str(&format!("{} = {}\n", key, format_value(val, comments)));
+                let _ = result.key(key.as_str());
+                result.push_str(&format!(" = {}\n", format_value(val, comments)));
             }
 
             // Rule 17: Show missing optional fields as comments
@@ -35,7 +37,9 @@ pub fn format_with_comments(
 
                 if optional_fields.contains(field) && !table.contains_key(key) {
                     append_comment(&mut result, comments, field);
-                    result.push_str(&format!("# {} = ...\n", key));
+                    result.push_str("# ");
+                    let _ = result.key(key.as_str());
+                    result.push_str(" = ...\n");
                 }
             }
 

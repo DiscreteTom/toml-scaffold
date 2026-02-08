@@ -13,6 +13,15 @@ pub fn format_with_comments(
     match value {
         toml::Value::Table(table) => {
             let mut result = String::new();
+
+            // Append root description if at root level
+            if path.len() == 0 {
+                append_comment(&mut result, comments, &FieldPath::new());
+                if comments.contains_key(&FieldPath::new()) {
+                    result.push('\n');
+                }
+            }
+
             let (inline_keys, nested_tables, array_tables) = categorize_table_keys(table);
 
             // Process scalar fields first

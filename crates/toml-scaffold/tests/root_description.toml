@@ -1,0 +1,7 @@
+# This is the main configuration
+# for the application
+
+# Server host
+host = "localhost"
+# Server port
+port = 8080

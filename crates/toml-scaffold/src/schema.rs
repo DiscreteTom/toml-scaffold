@@ -26,6 +26,11 @@ pub fn extract_schema_info(schema: &Schema, prefix: &FieldPath) -> SchemaInfo {
         return info;
     };
 
+    // Extract root description and store at empty field path
+    if let Some(desc) = obj.get("description").and_then(|v| v.as_str()) {
+        info.comments.insert(FieldPath::new(), desc.to_string());
+    }
+
     let definitions = obj
         .get("$defs")
         .and_then(|v| v.as_object())
@@ -201,5 +206,24 @@ mod tests {
         assert_eq!(info.all_fields.len(), 0);
         assert_eq!(info.optional_fields.len(), 0);
         assert_eq!(info.comments.len(), 0);
+    }
+
+    #[test]
+    fn test_root_description() {
+        /// This is a multi-line
+        /// root description
+        #[derive(schemars::JsonSchema)]
+        #[allow(dead_code)]
+        struct Config {
+            value: String,
+        }
+
+        let schema = schemars::schema_for!(Config);
+        let info = extract_schema_info(&schema, &FieldPath::new());
+
+        assert_eq!(
+            info.comments.get(&FieldPath::new()),
+            Some(&"This is a multi-line\nroot description".to_string())
+        );
     }
 }

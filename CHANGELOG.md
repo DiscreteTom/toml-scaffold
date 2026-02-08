@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support for root struct doc comments - prepended to TOML output with blank line separator
+
+### Changed
+
+- Empty lines in multiline doc comments are automatically removed (matches schemars behavior)
+
 ### Fixed
 
 - Handle field names containing dots correctly

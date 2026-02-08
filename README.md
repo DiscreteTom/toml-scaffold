@@ -30,6 +30,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use toml_scaffold::TomlScaffold;
 
+/// Server configuration
 #[derive(Serialize, JsonSchema, TomlScaffold)]
 struct Config {
     /// Server host address
@@ -51,6 +52,8 @@ fn main() {
 Output:
 
 ```toml
+# Server configuration
+
 # Server host address
 host = "localhost"
 # Server port

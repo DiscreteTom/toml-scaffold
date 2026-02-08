@@ -5,9 +5,7 @@ use toml_scaffold::TomlScaffold;
 #[derive(Serialize, Deserialize, JsonSchema, TomlScaffold, PartialEq, Debug)]
 struct MultiLineDoc {
     /// This is a field
-    ///
     /// with multiple lines
-    ///
     /// of documentation
     field: String,
 }

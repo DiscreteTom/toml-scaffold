@@ -136,7 +136,7 @@ fn append_comment(result: &mut String, comments: &HashMap<FieldPath, String>, pa
 
 /// Rule 8: Add empty line before section (if not first)
 fn append_section_separator(result: &mut String) {
-    if !result.is_empty() {
+    if !result.is_empty() && !result.ends_with("\n\n") {
         result.push('\n');
     }
 }

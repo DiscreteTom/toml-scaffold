@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Prevent duplicate empty lines before TOML sections
+
 ## [0.2.0] - 2026-02-08
 
 ### Added

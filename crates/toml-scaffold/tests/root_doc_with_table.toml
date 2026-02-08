@@ -1,0 +1,5 @@
+# Application configuration
+
+# Database settings
+[database]
+url = "localhost"

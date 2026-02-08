@@ -39,7 +39,7 @@ fn test_nested_with_special_chars() {
     };
     let scaffold = config.to_scaffold().unwrap();
     assert_eq!(scaffold, include_str!("nested_with_special_chars.toml"));
-    
+
     let deserialized: Config = toml::from_str(&scaffold).unwrap();
     assert_eq!(deserialized, config);
 }

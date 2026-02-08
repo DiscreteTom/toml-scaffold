@@ -140,9 +140,21 @@ fn format_value(value: &toml::Value, comments: &HashMap<FieldPath, String>) -> S
             let _ = result.value(s);
             result
         }
-        toml::Value::Integer(i) => i.to_string(),
-        toml::Value::Float(f) => f.to_string(),
-        toml::Value::Boolean(b) => b.to_string(),
+        toml::Value::Integer(i) => {
+            let mut result = String::new();
+            let _ = result.value(i);
+            result
+        }
+        toml::Value::Float(f) => {
+            let mut result = String::new();
+            let _ = result.value(f);
+            result
+        }
+        toml::Value::Boolean(b) => {
+            let mut result = String::new();
+            let _ = result.value(b);
+            result
+        }
         toml::Value::Array(arr) => {
             // Rule 4: Inline arrays for scalar types with less than 5 elements
             if arr.len() < 5 && arr.iter().all(|v| is_scalar(v)) {

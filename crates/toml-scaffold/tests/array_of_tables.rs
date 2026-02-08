@@ -28,7 +28,7 @@ fn test_array_of_tables() {
     };
     let scaffold = config.to_scaffold().unwrap();
     assert_eq!(scaffold, include_str!("array_of_tables.toml"));
-    
+
     let deserialized: WithArray = toml::from_str(&scaffold).unwrap();
     assert_eq!(deserialized, config);
 }

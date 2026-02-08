@@ -18,7 +18,7 @@ fn test_basic_value() {
     };
     let scaffold = config.to_scaffold().unwrap();
     assert_eq!(scaffold, include_str!("basic_value.toml"));
-    
+
     let deserialized: Config = toml::from_str(&scaffold).unwrap();
     assert_eq!(deserialized, config);
 }

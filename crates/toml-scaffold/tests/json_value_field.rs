@@ -15,7 +15,7 @@ fn test_json_value_field() {
     };
     let scaffold = config.to_scaffold().unwrap();
     assert_eq!(scaffold, include_str!("json_value_field.toml"));
-    
+
     let deserialized: Config = toml::from_str(&scaffold).unwrap();
     assert_eq!(deserialized, config);
 }
@@ -27,7 +27,7 @@ fn test_json_value_field_empty() {
     };
     let scaffold = config.to_scaffold().unwrap();
     assert_eq!(scaffold, include_str!("json_value_field_empty.toml"));
-    
+
     let deserialized: Config = toml::from_str(&scaffold).unwrap();
     assert_eq!(deserialized, config);
 }

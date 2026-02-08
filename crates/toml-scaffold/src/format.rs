@@ -12,22 +12,7 @@ pub fn format_with_comments(
     match value {
         toml::Value::Table(table) => {
             let mut result = String::new();
-            let mut inline_keys = Vec::new();
-            let mut nested_tables = Vec::new();
-            let mut array_tables = Vec::new();
-
-            // Rule 15: Separate scalar fields from nested tables/arrays
-            for (key, val) in table {
-                match val {
-                    toml::Value::Table(_) => nested_tables.push(key),
-                    toml::Value::Array(arr)
-                        if !arr.is_empty() && matches!(arr[0], toml::Value::Table(_)) =>
-                    {
-                        array_tables.push(key);
-                    }
-                    _ => inline_keys.push(key),
-                }
-            }
+            let (inline_keys, nested_tables, array_tables) = categorize_table_keys(table);
 
             // Process scalar fields first
             for key in inline_keys {
@@ -94,8 +79,31 @@ pub fn format_with_comments(
 
             result
         }
-        _ => String::new(),
+        _ => unreachable!(),
     }
+}
+
+/// Rule 15: Categorize table keys into inline, nested tables, and array tables
+fn categorize_table_keys(
+    table: &toml::map::Map<String, toml::Value>,
+) -> (Vec<&String>, Vec<&String>, Vec<&String>) {
+    let mut inline_keys = Vec::new();
+    let mut nested_tables = Vec::new();
+    let mut array_tables = Vec::new();
+
+    for (key, val) in table {
+        match val {
+            toml::Value::Table(_) => nested_tables.push(key),
+            toml::Value::Array(arr)
+                if !arr.is_empty() && matches!(arr[0], toml::Value::Table(_)) =>
+            {
+                array_tables.push(key);
+            }
+            _ => inline_keys.push(key),
+        }
+    }
+
+    (inline_keys, nested_tables, array_tables)
 }
 
 /// Rule 7 & 9: Append comment lines above a key/section

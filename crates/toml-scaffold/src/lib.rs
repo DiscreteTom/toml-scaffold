@@ -1,5 +1,3 @@
-#![doc = include_str!("../../../README.md")]
-
 mod field_path;
 mod format;
 mod schema;

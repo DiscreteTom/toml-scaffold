@@ -1,0 +1,12 @@
+# Regular field
+regular = "value"
+
+# Nested table with dots in name
+["table.with.dots"]
+# Middle field
+middle_field = "middle"
+
+# Nested inner with dots
+["table.with.dots"."inner.with.dots"]
+# Inner value
+value = "nested"

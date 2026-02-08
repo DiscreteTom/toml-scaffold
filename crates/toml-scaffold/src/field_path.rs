@@ -45,7 +45,16 @@ impl FieldPath {
 
     /// Converts this path to a TOML dotted key string.
     pub fn as_dotted_key(&self) -> String {
-        self.0.join(".")
+        use toml_writer::TomlWrite;
+
+        let mut result = String::new();
+        for (i, segment) in self.0.iter().enumerate() {
+            if i > 0 {
+                result.push('.');
+            }
+            let _ = result.key(segment.as_str());
+        }
+        result
     }
 }
 
@@ -110,7 +119,7 @@ mod tests {
     fn test_field_with_dots() {
         let path = FieldPath::from_vec(vec!["field.with.dots".to_string()]);
         assert_eq!(path.len(), 1);
-        assert_eq!(path.as_dotted_key(), "field.with.dots");
+        assert_eq!(path.as_dotted_key(), "\"field.with.dots\"");
     }
 
     #[test]

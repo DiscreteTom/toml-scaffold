@@ -1,3 +1,5 @@
+#![doc = include_str!("../../../README.md")]
+
 mod format;
 mod schema;
 
@@ -11,11 +13,14 @@ pub trait TomlScaffold: Serialize + JsonSchema {
     ///
     /// Returns an error if serialization fails
     fn to_scaffold(&self) -> Result<String, toml::ser::Error> {
+        // Serialize struct to TOML value
         let value = toml::Value::try_from(&self)?;
 
+        // Extract schema metadata (comments, field info)
         let schema = schemars::schema_for!(Self);
         let schema_info = schema::extract_schema_info(&schema, "");
 
+        // Format TOML with comments from schema
         let result = format::format_with_comments(
             &value,
             &schema_info.comments,
@@ -23,6 +28,7 @@ pub trait TomlScaffold: Serialize + JsonSchema {
             &schema_info.optional_fields,
             "",
         );
+
         // Rule 14: Always end file with a single newline
         Ok(format!("{}\n", result.trim_end()))
     }

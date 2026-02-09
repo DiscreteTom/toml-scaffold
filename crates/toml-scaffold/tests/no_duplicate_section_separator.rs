@@ -29,7 +29,10 @@ fn test_no_duplicate_section_separator() {
         },
     };
     let scaffold = config.to_scaffold().unwrap();
-    assert_eq!(scaffold, include_str!("no_duplicate_section_separator.toml"));
+    assert_eq!(
+        scaffold,
+        include_str!("no_duplicate_section_separator.toml")
+    );
 
     let deserialized: Config = toml::from_str(&scaffold).unwrap();
     assert_eq!(deserialized, config);

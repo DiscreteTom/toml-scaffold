@@ -318,20 +318,13 @@ fn format_value(
                 return format!("[\n  {},\n]", items.join(",\n  "));
             }
 
-            // Rule 4: Inline arrays for scalar types with less than 5 elements
-            if arr.len() < 5 && arr.iter().all(|v| is_scalar(v)) {
+            // Rule 4: Inline arrays for scalar types
+            if arr.iter().all(|v| is_scalar(v)) {
                 let items: Vec<String> = arr
                     .iter()
                     .map(|v| format_value(v, comments, formats, path))
                     .collect();
                 format!("[{}]", items.join(", "))
-            } else if arr.iter().all(|v| is_scalar(v)) {
-                // Rule 6: Multi-line arrays for 5+ scalar elements
-                let items: Vec<String> = arr
-                    .iter()
-                    .map(|v| format_value(v, comments, formats, path))
-                    .collect();
-                format!("[\n  {},\n]", items.join(",\n  "))
             } else {
                 // Non-scalar arrays handled by format_with_comments
                 format!(
@@ -502,7 +495,7 @@ mod tests {
         ]);
         assert_eq!(
             format_value(&val, &comments, &formats, &path),
-            "[\n  1,\n  2,\n  3,\n  4,\n  5,\n]"
+            "[1, 2, 3, 4, 5]"
         );
     }
 

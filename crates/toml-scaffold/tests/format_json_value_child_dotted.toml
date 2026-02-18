@@ -1,0 +1,7 @@
+# Application name
+name = "myapp"
+
+# Body configuration (child dotted format)
+[body]
+key1 = 123
+key2.key3 = 456

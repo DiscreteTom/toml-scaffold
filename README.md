@@ -11,6 +11,7 @@ Generate commented TOML configuration scaffold files from Rust structs and value
 - Preserve doc comments as TOML comments
 - Preserve field order in generated TOML
 - Support for common types: primitives, `Option`, `HashMap`, `Vec`, nested structs and `serde_json::Value`
+- Customizable formatting with `#[format]` attribute
 
 ## Installation
 
@@ -24,6 +25,8 @@ toml-scaffold = "0.2"
 ```
 
 ## Usage
+
+### Basic Example
 
 ```rust
 use schemars::JsonSchema;
@@ -59,6 +62,61 @@ host = "localhost"
 # Server port
 port = 8080
 ```
+
+### Custom Formatting
+
+Use `#[format = "..."]` to control how fields are rendered:
+
+```rust
+use schemars::JsonSchema;
+use serde::Serialize;
+use toml_scaffold::TomlScaffold;
+
+#[derive(Serialize, JsonSchema, TomlScaffold)]
+struct Database {
+    host: String,
+    port: u16,
+}
+
+#[derive(Serialize, JsonSchema, TomlScaffold)]
+struct Config {
+    name: String,
+    
+    /// Inline table format
+    #[format = "inline"]
+    database: Database,
+    
+    /// Dotted keys format
+    #[format = "dotted"]
+    server: Database,
+    
+    /// Child dotted format - keep [section], flatten children
+    #[format = "*dotted"]
+    settings: serde_json::Value,
+}
+```
+
+Output:
+
+```toml
+name = "myapp"
+database = { host = "localhost", port = 5432 }
+server.host = "0.0.0.0"
+server.port = 8080
+
+[settings]
+key1 = 123
+nested.key2 = 456
+```
+
+**Format Options:**
+
+- `"inline"` - Inline table: `{ key = value }`
+- `"dotted"` - Flatten one level: `field.key = value`
+- `"dotted-nested"` - Recursively flatten: `field.key.subkey = value`
+- `"*dotted"` - Keep `[field]` section, flatten children
+- `"*dotted-nested"` - Keep `[field]` section, recursively flatten children
+- `"multiline"` - Force multiline array format
 
 ## [More Examples](./crates/toml-scaffold/tests/)
 

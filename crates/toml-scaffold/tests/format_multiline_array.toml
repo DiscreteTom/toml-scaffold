@@ -1,0 +1,7 @@
+# List of ports (multiline format)
+ports = [
+  8080,
+  8081,
+]
+# List of tags (default inline format)
+tags = ["web", "api"]

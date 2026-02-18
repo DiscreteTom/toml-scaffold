@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `#[format]` attribute for customizable field formatting
+  - `"inline"` - Render nested structs as inline tables: `{ key = value }`
+  - `"dotted"` - Flatten one level with dotted keys: `field.key = value`
+  - `"dotted-nested"` - Recursively flatten all levels: `field.key.subkey = value`
+  - `"*dotted"` - Keep `[section]` header, flatten children with dotted keys
+  - `"*dotted-nested"` - Keep `[section]` header, recursively flatten all children
+  - `"multiline"` - Force multiline array format even for <5 elements
+- Support for `#[format]` attribute on `serde_json::Value` fields
+
 ## [0.2.1] - 2026-02-09
 
 ### Fixed

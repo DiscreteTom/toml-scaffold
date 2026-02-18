@@ -6,7 +6,7 @@
 
 2. **Block maps**: Otherwise, format as a table block with `[section]` headers
 
-3. **No dotted keys for structs**: Never use `key1.key2 = value` syntax. Always display fields on separate lines within their table section
+3. **No dotted keys by default**: By default, never use `key1.key2 = value` syntax. Always display fields on separate lines within their table section. Use `#[format]` attribute to override.
 
 ## Arrays
 
@@ -15,6 +15,16 @@
 5. **Array of tables**: For arrays of maps/structs, use `[[item]]` syntax with each element as a separate block
 
 6. **Multi-line arrays**: For long scalar arrays (5+ elements), use multi-line format with one element per line
+
+## Format Attributes
+
+21. **Custom formatting**: Use `#[format = "..."]` attribute on struct fields to override default formatting:
+    - `"inline"` - Force inline table: `field = { key = value }`
+    - `"dotted"` - Flatten one level: `field.key = value`
+    - `"dotted-nested"` - Recursively flatten all levels: `field.key.subkey = value`
+    - `"*dotted"` - Keep `[field]` section, flatten children: `[field]` then `key.subkey = value`
+    - `"*dotted-nested"` - Keep `[field]` section, recursively flatten all children
+    - `"multiline"` - Force multiline array format even for <5 elements
 
 ## Comments
 

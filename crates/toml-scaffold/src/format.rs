@@ -8,6 +8,7 @@ pub fn format_with_comments(
     comments: &HashMap<FieldPath, String>,
     all_fields: &HashSet<FieldPath>,
     optional_fields: &HashSet<FieldPath>,
+    formats: &HashMap<FieldPath, String>,
     path: &FieldPath,
 ) -> String {
     match value {
@@ -31,7 +32,10 @@ pub fn format_with_comments(
                 append_comment(&mut result, comments, &current_path);
                 // Rule 11: Use spaces around = for assignments
                 let _ = result.key(key.as_str());
-                result.push_str(&format!(" = {}\n", format_value(val, comments)));
+                result.push_str(&format!(
+                    " = {}\n",
+                    format_value(val, comments, formats, &current_path)
+                ));
             }
 
             // Rule 17: Show missing optional fields as comments
@@ -56,17 +60,149 @@ pub fn format_with_comments(
             for key in nested_tables {
                 let val = &table[key];
                 let current_path = path.child(key.clone());
-                append_section_separator(&mut result);
-                append_comment(&mut result, comments, &current_path);
-                // Rule 3: Always use [section] headers, never dotted keys
-                result.push_str(&format!("[{}]\n", current_path.as_dotted_key()));
-                result.push_str(&format_with_comments(
-                    val,
-                    comments,
-                    all_fields,
-                    optional_fields,
-                    &current_path,
-                ));
+                let format_pref = formats.get(&current_path).map(|s| s.as_str());
+
+                match format_pref {
+                    Some("inline") => {
+                        // Inline format: key = { ... }
+                        append_comment(&mut result, comments, &current_path);
+                        let _ = result.key(key.as_str());
+                        if let toml::Value::Table(nested) = val {
+                            let items: Vec<String> = nested
+                                .iter()
+                                .map(|(k, v)| {
+                                    let subpath = current_path.child(k.clone());
+                                    format!(
+                                        "{} = {}",
+                                        k,
+                                        format_value(v, comments, formats, &subpath)
+                                    )
+                                })
+                                .collect();
+                            result.push_str(&format!(" = {{ {} }}\n", items.join(", ")));
+                        }
+                    }
+                    Some("dotted") => {
+                        // Dotted format: key.subkey = value (one level only)
+                        append_comment(&mut result, comments, &current_path);
+                        if let toml::Value::Table(nested) = val {
+                            for (subkey, subval) in nested {
+                                let subpath = current_path.child(subkey.clone());
+                                append_comment(&mut result, comments, &subpath);
+                                result.push_str(&format!(
+                                    "{}.{} = {}\n",
+                                    key,
+                                    subkey,
+                                    format_value(subval, comments, formats, &subpath)
+                                ));
+                            }
+                        }
+                    }
+                    Some("dotted-nested") => {
+                        // Dotted nested format: recursively flatten all levels
+                        append_comment(&mut result, comments, &current_path);
+                        if let toml::Value::Table(nested) = val {
+                            flatten_dotted(
+                                &mut result,
+                                key,
+                                nested,
+                                comments,
+                                formats,
+                                &current_path,
+                            );
+                        }
+                    }
+                    Some(fmt) if fmt.starts_with("*") => {
+                        // Child format: [section] with custom format for children
+                        let child_format = &fmt[1..]; // Remove * prefix
+                        append_section_separator(&mut result);
+                        append_comment(&mut result, comments, &current_path);
+                        result.push_str(&format!("[{}]\n", current_path.as_dotted_key()));
+
+                        if let toml::Value::Table(nested) = val {
+                            match child_format {
+                                "dotted" => {
+                                    // Children use dotted format
+                                    for (subkey, subval) in nested {
+                                        let subpath = current_path.child(subkey.clone());
+                                        if let toml::Value::Table(sub_nested) = subval {
+                                            for (sub_subkey, sub_subval) in sub_nested {
+                                                let sub_subpath = subpath.child(sub_subkey.clone());
+                                                append_comment(&mut result, comments, &sub_subpath);
+                                                result.push_str(&format!(
+                                                    "{}.{} = {}\n",
+                                                    subkey,
+                                                    sub_subkey,
+                                                    format_value(
+                                                        sub_subval,
+                                                        comments,
+                                                        formats,
+                                                        &sub_subpath
+                                                    )
+                                                ));
+                                            }
+                                        } else {
+                                            append_comment(&mut result, comments, &subpath);
+                                            result.push_str(&format!(
+                                                "{} = {}\n",
+                                                subkey,
+                                                format_value(subval, comments, formats, &subpath)
+                                            ));
+                                        }
+                                    }
+                                }
+                                "dotted-nested" => {
+                                    // Children use dotted-nested format
+                                    for (subkey, subval) in nested {
+                                        let subpath = current_path.child(subkey.clone());
+                                        if let toml::Value::Table(sub_nested) = subval {
+                                            flatten_dotted(
+                                                &mut result,
+                                                subkey,
+                                                sub_nested,
+                                                comments,
+                                                formats,
+                                                &subpath,
+                                            );
+                                        } else {
+                                            append_comment(&mut result, comments, &subpath);
+                                            result.push_str(&format!(
+                                                "{} = {}\n",
+                                                subkey,
+                                                format_value(subval, comments, formats, &subpath)
+                                            ));
+                                        }
+                                    }
+                                }
+                                _ => {
+                                    // Default standard format for children
+                                    result.push_str(&format_with_comments(
+                                        val,
+                                        comments,
+                                        all_fields,
+                                        optional_fields,
+                                        formats,
+                                        &current_path,
+                                    ));
+                                }
+                            }
+                        }
+                    }
+                    _ => {
+                        // Standard format: [section]
+                        append_section_separator(&mut result);
+                        append_comment(&mut result, comments, &current_path);
+                        result.push_str(&format!("[{}]\n", current_path.as_dotted_key()));
+                        result.push_str(&format_with_comments(
+                            val,
+                            comments,
+                            all_fields,
+                            optional_fields,
+                            formats,
+                            &current_path,
+                        ));
+                    }
+                }
             }
 
             // Rule 5: Process array of tables using [[item]] syntax
@@ -84,6 +220,7 @@ pub fn format_with_comments(
                             comments,
                             all_fields,
                             optional_fields,
+                            formats,
                             &current_path,
                         ));
                     }
@@ -142,7 +279,12 @@ fn append_section_separator(result: &mut String) {
 }
 
 /// Convert TOML value to string representation
-fn format_value(value: &toml::Value, comments: &HashMap<FieldPath, String>) -> String {
+fn format_value(
+    value: &toml::Value,
+    comments: &HashMap<FieldPath, String>,
+    formats: &HashMap<FieldPath, String>,
+    path: &FieldPath,
+) -> String {
     match value {
         toml::Value::String(s) => {
             let mut result = String::new();
@@ -165,20 +307,37 @@ fn format_value(value: &toml::Value, comments: &HashMap<FieldPath, String>) -> S
             result
         }
         toml::Value::Array(arr) => {
+            let format_pref = formats.get(path).map(|s| s.as_str());
+
+            // Check if multiline format is requested
+            if format_pref == Some("multiline") {
+                let items: Vec<String> = arr
+                    .iter()
+                    .map(|v| format_value(v, comments, formats, path))
+                    .collect();
+                return format!("[\n  {},\n]", items.join(",\n  "));
+            }
+
             // Rule 4: Inline arrays for scalar types with less than 5 elements
             if arr.len() < 5 && arr.iter().all(|v| is_scalar(v)) {
-                let items: Vec<String> = arr.iter().map(|v| format_value(v, comments)).collect();
+                let items: Vec<String> = arr
+                    .iter()
+                    .map(|v| format_value(v, comments, formats, path))
+                    .collect();
                 format!("[{}]", items.join(", "))
             } else if arr.iter().all(|v| is_scalar(v)) {
                 // Rule 6: Multi-line arrays for 5+ scalar elements
-                let items: Vec<String> = arr.iter().map(|v| format_value(v, comments)).collect();
+                let items: Vec<String> = arr
+                    .iter()
+                    .map(|v| format_value(v, comments, formats, path))
+                    .collect();
                 format!("[\n  {},\n]", items.join(",\n  "))
             } else {
                 // Non-scalar arrays handled by format_with_comments
                 format!(
                     "[{}]",
                     arr.iter()
-                        .map(|v| format_value(v, comments))
+                        .map(|v| format_value(v, comments, formats, path))
                         .collect::<Vec<_>>()
                         .join(", ")
                 )
@@ -192,7 +351,7 @@ fn format_value(value: &toml::Value, comments: &HashMap<FieldPath, String>) -> S
             {
                 let items: Vec<String> = table
                     .iter()
-                    .map(|(k, v)| format!("{} = {}", k, format_value(v, comments)))
+                    .map(|(k, v)| format!("{} = {}", k, format_value(v, comments, formats, path)))
                     .collect();
                 format!("{{ {} }}", items.join(", "))
             } else {
@@ -219,6 +378,37 @@ fn has_comments(
         .any(|k| comments.contains_key(&FieldPath::from_vec(vec![k.clone()])))
 }
 
+/// Recursively flatten nested tables into dotted keys
+fn flatten_dotted(
+    result: &mut String,
+    prefix: &str,
+    table: &toml::map::Map<String, toml::Value>,
+    comments: &HashMap<FieldPath, String>,
+    formats: &HashMap<FieldPath, String>,
+    path: &FieldPath,
+) {
+    for (key, val) in table {
+        let subpath = path.child(key.clone());
+        let dotted_key = format!("{}.{}", prefix, key);
+
+        match val {
+            toml::Value::Table(nested) => {
+                // Recursively flatten nested tables
+                flatten_dotted(result, &dotted_key, nested, comments, formats, &subpath);
+            }
+            _ => {
+                // Scalar value - write as dotted key
+                append_comment(result, comments, &subpath);
+                result.push_str(&format!(
+                    "{} = {}\n",
+                    dotted_key,
+                    format_value(val, comments, formats, &subpath)
+                ));
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -226,61 +416,83 @@ mod tests {
     #[test]
     fn test_format_value_string() {
         let comments = HashMap::new();
+        let formats = HashMap::new();
+        let path = FieldPath::new();
         let val = toml::Value::String("test".to_string());
-        assert_eq!(format_value(&val, &comments), "\"test\"");
+        assert_eq!(format_value(&val, &comments, &formats, &path), "\"test\"");
     }
 
     #[test]
     fn test_format_value_string_with_escapes() {
         let comments = HashMap::new();
+        let formats = HashMap::new();
+        let path = FieldPath::new();
         let val = toml::Value::String("test\"quote".to_string());
         // TomlStringBuilder uses literal strings for strings with quotes
-        assert_eq!(format_value(&val, &comments), "'test\"quote'");
+        assert_eq!(
+            format_value(&val, &comments, &formats, &path),
+            "'test\"quote'"
+        );
     }
 
     #[test]
     fn test_format_value_multiline_string() {
         let comments = HashMap::new();
+        let formats = HashMap::new();
+        let path = FieldPath::new();
         let val = toml::Value::String("line1\nline2".to_string());
         // TomlStringBuilder adds newline after opening """ for multiline strings
-        assert_eq!(format_value(&val, &comments), "\"\"\"\nline1\nline2\"\"\"");
+        assert_eq!(
+            format_value(&val, &comments, &formats, &path),
+            "\"\"\"\nline1\nline2\"\"\""
+        );
     }
 
     #[test]
     fn test_format_value_integer() {
         let comments = HashMap::new();
+        let formats = HashMap::new();
+        let path = FieldPath::new();
         let val = toml::Value::Integer(42);
-        assert_eq!(format_value(&val, &comments), "42");
+        assert_eq!(format_value(&val, &comments, &formats, &path), "42");
     }
 
     #[test]
     fn test_format_value_float() {
         let comments = HashMap::new();
+        let formats = HashMap::new();
+        let path = FieldPath::new();
         let val = toml::Value::Float(3.14);
-        assert_eq!(format_value(&val, &comments), "3.14");
+        assert_eq!(format_value(&val, &comments, &formats, &path), "3.14");
     }
 
     #[test]
     fn test_format_value_boolean() {
         let comments = HashMap::new();
+        let formats = HashMap::new();
+        let path = FieldPath::new();
         let val = toml::Value::Boolean(true);
-        assert_eq!(format_value(&val, &comments), "true");
+        assert_eq!(format_value(&val, &comments, &formats, &path), "true");
     }
 
     #[test]
     fn test_format_value_inline_array() {
         let comments = HashMap::new();
+        let formats = HashMap::new();
+        let path = FieldPath::new();
         let val = toml::Value::Array(vec![
             toml::Value::Integer(1),
             toml::Value::Integer(2),
             toml::Value::Integer(3),
         ]);
-        assert_eq!(format_value(&val, &comments), "[1, 2, 3]");
+        assert_eq!(format_value(&val, &comments, &formats, &path), "[1, 2, 3]");
     }
 
     #[test]
     fn test_format_value_multiline_array() {
         let comments = HashMap::new();
+        let formats = HashMap::new();
+        let path = FieldPath::new();
         let val = toml::Value::Array(vec![
             toml::Value::Integer(1),
             toml::Value::Integer(2),
@@ -289,7 +501,7 @@ mod tests {
             toml::Value::Integer(5),
         ]);
         assert_eq!(
-            format_value(&val, &comments),
+            format_value(&val, &comments, &formats, &path),
             "[\n  1,\n  2,\n  3,\n  4,\n  5,\n]"
         );
     }

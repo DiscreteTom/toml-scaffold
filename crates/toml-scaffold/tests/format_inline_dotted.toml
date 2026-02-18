@@ -1,0 +1,9 @@
+# Application name
+name = "myapp"
+# Database configuration (inline format)
+database = { host = "localhost", port = 5432 }
+# Server configuration (dotted format)
+# Server host
+server.host = "0.0.0.0"
+# Server port
+server.port = 8080

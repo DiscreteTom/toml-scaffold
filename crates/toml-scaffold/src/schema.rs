@@ -12,6 +12,8 @@ pub struct SchemaInfo {
     pub all_fields: HashSet<FieldPath>,
     /// Optional field paths
     pub optional_fields: HashSet<FieldPath>,
+    /// Format preferences for fields
+    pub formats: HashMap<FieldPath, String>,
 }
 
 /// Extracts comments and field information from schema root.
@@ -20,6 +22,7 @@ pub fn extract_schema_info(schema: &Schema, prefix: &FieldPath) -> SchemaInfo {
         comments: HashMap::new(),
         all_fields: HashSet::new(),
         optional_fields: HashSet::new(),
+        formats: HashMap::new(),
     };
 
     let Some(obj) = schema.as_object() else {

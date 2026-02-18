@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING**: Scalar arrays now always format inline regardless of element count. Previously, arrays with 5+ elements were formatted as multiline. Users can use `#[format = "multiline"]` to force multiline format when needed.
+
 ## [0.3.0] - 2026-02-18
 
 ### Added
@@ -17,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `"dotted-nested"` - Recursively flatten all levels: `field.key.subkey = value`
   - `"*dotted"` - Keep `[section]` header, flatten children with dotted keys
   - `"*dotted-nested"` - Keep `[section]` header, recursively flatten all children
-  - `"multiline"` - Force multiline array format even for <5 elements
+  - `"multiline"` - Force multiline array format
 - Support for `#[format]` attribute on `serde_json::Value` fields
 
 ## [0.2.1] - 2026-02-09

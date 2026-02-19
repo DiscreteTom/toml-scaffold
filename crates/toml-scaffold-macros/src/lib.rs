@@ -11,15 +11,38 @@ pub fn derive_toml_scaffold(input: TokenStream) -> TokenStream {
     let name = &input.ident;
 
     let format_attrs = extract_format_attributes(&input.data);
+    let fields = extract_fields(&input.data);
 
     let field_names: Vec<_> = format_attrs.iter().map(|(k, _)| k).collect();
     let format_values: Vec<_> = format_attrs.iter().map(|(_, v)| v).collect();
 
+    let nested_field_names: Vec<_> = fields.iter().map(|(name, _)| name).collect();
+    let nested_field_types: Vec<_> = fields.iter().map(|(_, ty)| ty).collect();
+
     let expanded = quote! {
         impl toml_scaffold::TomlScaffold for #name {
-            fn format_preferences() -> ::std::collections::HashMap<String, String> {
+            fn format_preferences() -> ::std::collections::HashMap<toml_scaffold::FieldPath, String> {
                 let mut map = ::std::collections::HashMap::new();
-                #(map.insert(#field_names.to_string(), #format_values.to_string());)*
+
+                // Direct format attributes
+                #(map.insert(
+                    toml_scaffold::FieldPath::from_vec(vec![#field_names.to_string()]),
+                    #format_values.to_string()
+                );)*
+
+                // Collect from nested types
+                #(
+                    for (nested_path, nested_value) in <#nested_field_types>::format_preferences() {
+                        let mut full_path = toml_scaffold::FieldPath::from_vec(vec![#nested_field_names.to_string()]);
+                        for i in 0..nested_path.len() {
+                            if let Some(segment) = nested_path.get(i) {
+                                full_path.push(segment.clone());
+                            }
+                        }
+                        map.insert(full_path, nested_value);
+                    }
+                )*
+
                 map
             }
         }
@@ -67,4 +90,20 @@ fn extract_format_attributes(data: &Data) -> Vec<(String, String)> {
     }
 
     attrs
+}
+
+fn extract_fields(data: &Data) -> Vec<(String, syn::Type)> {
+    let mut fields = Vec::new();
+
+    if let Data::Struct(data_struct) = data {
+        if let Fields::Named(named_fields) = &data_struct.fields {
+            for field in &named_fields.named {
+                let field_name = field.ident.as_ref().unwrap().to_string();
+                let field_type = field.ty.clone();
+                fields.push((field_name, field_type));
+            }
+        }
+    }
+
+    fields
 }

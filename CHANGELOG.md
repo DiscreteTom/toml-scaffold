@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **BREAKING**: Scalar arrays now always format inline regardless of element count. Previously, arrays with 5+ elements were formatted as multiline. Users can use `#[format = "multiline"]` to force multiline format when needed.
+- **BREAKING**: `TomlScaffold::format_preferences()` now returns `HashMap<FieldPath, String>` instead of `HashMap<String, String>`. `FieldPath` is now public.
+
+### Fixed
+
+- `#[format]` attributes on nested struct fields now work correctly. Format preferences are recursively collected from all nested types.
 
 ## [0.3.0] - 2026-02-18
 

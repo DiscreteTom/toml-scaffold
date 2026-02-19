@@ -1,0 +1,8 @@
+name = "test"
+
+[llm]
+base_url = "https://example.com"
+
+[llm.body]
+parallel_tool_calls = true
+reasoning.effort = "medium"

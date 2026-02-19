@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-02-19
+
 ### Changed
 
 - **BREAKING**: Scalar arrays now always format inline regardless of element count. Previously, arrays with 5+ elements were formatted as multiline. Users can use `#[format = "multiline"]` to force multiline format when needed.
@@ -61,7 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for primitives, Option, HashMap, Vec, nested structs and `serde_json::Value`
 - Enable `preserve_order` feature for toml dependency to maintain field order
 
-[unreleased]: https://github.com/DiscreteTom/toml-scaffold/compare/v0.3.0...HEAD
+[unreleased]: https://github.com/DiscreteTom/toml-scaffold/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/DiscreteTom/toml-scaffold/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/DiscreteTom/toml-scaffold/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/DiscreteTom/toml-scaffold/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/DiscreteTom/toml-scaffold/compare/v0.1.0...v0.2.0

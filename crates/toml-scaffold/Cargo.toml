@@ -1,6 +1,6 @@
 [package]
 name = "toml-scaffold"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 authors = ["DiscreteTom"]
 description = "Generate commented TOML scaffolds from Rust structs and values"
@@ -11,7 +11,7 @@ keywords = ["toml", "scaffold", "config", "serde"]
 categories = ["config", "encoding"]
 
 [dependencies]
-toml-scaffold-macros = { path = "../toml-scaffold-macros", version = "0.2" }
+toml-scaffold-macros = { path = "../toml-scaffold-macros", version = "0.3" }
 toml = { version = "0.9", features = ["preserve_order"] }
 toml_writer = "1"
 serde = "1"
